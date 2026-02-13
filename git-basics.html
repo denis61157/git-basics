@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git — Простым языком</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #e0e0e0;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 60px;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .slide.active { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #f97316, #fb923c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  h2 {
+    font-size: 2.5rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+    color: #f5f5f5;
+  }
+
+  .subtitle {
+    font-size: 1.4rem;
+    color: #888;
+    margin-top: 0.5rem;
+  }
+
+  p, li {
+    font-size: 1.3rem;
+    line-height: 1.8;
+    color: #ccc;
+  }
+
+  .big-text {
+    font-size: 2rem;
+    color: #f5f5f5;
+    line-height: 1.6;
+    max-width: 700px;
+  }
+
+  .highlight {
+    color: #f97316;
+    font-weight: 600;
+  }
+
+  .diagram {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 1.2rem;
+    line-height: 2;
+    background: #141414;
+    border: 1px solid #262626;
+    border-radius: 16px;
+    padding: 40px 50px;
+    margin: 30px 0;
+    text-align: left;
+    white-space: pre;
+  }
+
+  .zone-flow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 40px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .zone-box {
+    background: #141414;
+    border: 2px solid #262626;
+    border-radius: 16px;
+    padding: 30px 25px;
+    text-align: center;
+    min-width: 180px;
+    transition: border-color 0.3s;
+  }
+
+  .zone-box:hover { border-color: #f97316; }
+
+  .zone-box .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .zone-box .label { font-size: 1.1rem; font-weight: 600; color: #f5f5f5; }
+  .zone-box .desc { font-size: 0.9rem; color: #888; margin-top: 6px; }
+
+  .arrow {
+    font-size: 2rem;
+    color: #f97316;
+  }
+
+  .branch-viz {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 1.3rem;
+    line-height: 2.2;
+    margin: 30px 0;
+  }
+
+  .branch-viz .main-line { color: #22c55e; }
+  .branch-viz .feature-line { color: #3b82f6; }
+  .branch-viz .label-tag {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-left: 10px;
+  }
+  .tag-main { background: #16a34a22; color: #22c55e; border: 1px solid #22c55e44; }
+  .tag-feature { background: #2563eb22; color: #3b82f6; border: 1px solid #3b82f644; }
+
+  .cmd-table {
+    border-collapse: collapse;
+    margin: 30px 0;
+    font-size: 1.1rem;
+  }
+
+  .cmd-table th {
+    text-align: left;
+    padding: 14px 24px;
+    color: #f97316;
+    font-weight: 600;
+    border-bottom: 2px solid #262626;
+  }
+
+  .cmd-table td {
+    padding: 14px 24px;
+    border-bottom: 1px solid #1a1a1a;
+    color: #ccc;
+  }
+
+  .cmd-table tr:hover td { background: #141414; }
+
+  .cmd-table code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: #1e1e1e;
+    padding: 3px 10px;
+    border-radius: 6px;
+    color: #fb923c;
+    font-size: 1rem;
+  }
+
+  .remote-diagram {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    margin: 40px 0;
+    justify-content: center;
+  }
+
+  .remote-box {
+    background: #141414;
+    border: 2px solid #262626;
+    border-radius: 20px;
+    padding: 40px 35px;
+    text-align: center;
+  }
+
+  .remote-box .icon { font-size: 3rem; margin-bottom: 10px; }
+  .remote-box .label { font-size: 1.2rem; font-weight: 600; color: #f5f5f5; }
+
+  .remote-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-family: 'SF Mono', monospace;
+    font-size: 1rem;
+  }
+
+  .remote-arrows .push { color: #f97316; }
+  .remote-arrows .pull { color: #22c55e; }
+
+  .rule-box {
+    background: linear-gradient(135deg, #f9731610, #f9731605);
+    border: 2px solid #f9731644;
+    border-radius: 20px;
+    padding: 40px 50px;
+    max-width: 600px;
+  }
+
+  .rule-box p {
+    font-size: 1.6rem;
+    color: #f5f5f5;
+    font-weight: 500;
+  }
+
+  /* Claude Code slide */
+  .claude-table {
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 1.05rem;
+  }
+
+  .claude-table td {
+    padding: 12px 20px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .claude-table td:first-child {
+    color: #888;
+    font-style: italic;
+  }
+
+  .claude-table td:last-child {
+    color: #fb923c;
+    font-family: 'SF Mono', monospace;
+    font-size: 0.95rem;
+  }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #141414;
+    border: 1px solid #262626;
+    border-radius: 12px;
+    padding: 10px 20px;
+    z-index: 100;
+  }
+
+  .nav button {
+    background: none;
+    border: 1px solid #333;
+    color: #ccc;
+    font-size: 1rem;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .nav button:hover {
+    background: #f97316;
+    color: #0a0a0a;
+    border-color: #f97316;
+  }
+
+  .nav .counter {
+    color: #555;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    min-width: 50px;
+    text-align: center;
+  }
+
+  /* Progress bar */
+  .progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: #f97316;
+    transition: width 0.3s ease;
+    z-index: 100;
+  }
+
+  kbd {
+    display: inline-block;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-family: 'SF Mono', monospace;
+    font-size: 0.85rem;
+    color: #999;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide active" id="slide-1">
+  <h1>Git</h1>
+  <p class="subtitle">Простым языком, без боли</p>
+</div>
+
+<!-- Slide 2: What is git -->
+<div class="slide" id="slide-2">
+  <h2>Что такое Git?</h2>
+  <p class="big-text">
+    <span class="highlight">Сейвы</span> для твоих файлов.<br>
+    Как в видеоигре — можно откатиться<br>
+    к любому моменту.
+  </p>
+</div>
+
+<!-- Slide 3: Three zones -->
+<div class="slide" id="slide-3">
+  <h2>Три зоны Git</h2>
+  <div class="zone-flow">
+    <div class="zone-box">
+      <div class="icon">📂</div>
+      <div class="label">Рабочая папка</div>
+      <div class="desc">Тут ты пишешь код</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="zone-box">
+      <div class="icon">📦</div>
+      <div class="label">Staging</div>
+      <div class="desc">Выбираешь что сохранить</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="zone-box">
+      <div class="icon">💾</div>
+      <div class="label">Commit</div>
+      <div class="desc">Сохраняешь с подписью</div>
+    </div>
+  </div>
+  <p style="margin-top: 20px; color: #888;">
+    <code style="color: #fb923c;">git add</code> — кладёшь в коробку &nbsp;→&nbsp;
+    <code style="color: #fb923c;">git commit</code> — заклеиваешь и подписываешь
+  </p>
+</div>
+
+<!-- Slide 4: Branches -->
+<div class="slide" id="slide-4">
+  <h2>Ветки</h2>
+  <div class="branch-viz">
+    <div>
+      <span class="main-line">●───●───●───●</span>
+      <span class="label-tag tag-main">main</span>
+    </div>
+    <div>
+      <span style="color: transparent;">●───●───</span><span class="feature-line">╲</span>
+    </div>
+    <div>
+      <span style="color: transparent;">●───●────</span><span class="feature-line">●───●───●</span>
+      <span class="label-tag tag-feature">feature</span>
+    </div>
+  </div>
+  <p class="big-text" style="font-size: 1.3rem;">
+    <span class="highlight">main</span> — стабильная версия<br>
+    <span style="color: #3b82f6; font-weight: 600;">feature</span> — черновик для экспериментов<br>
+    <span style="color: #888;">merge</span> — вливаешь черновик обратно
+  </p>
+</div>
+
+<!-- Slide 5: Commands -->
+<div class="slide" id="slide-5">
+  <h2>Основные команды</h2>
+  <table class="cmd-table">
+    <tr>
+      <th>Команда</th>
+      <th>Что делает</th>
+    </tr>
+    <tr>
+      <td><code>git init</code></td>
+      <td>Включает git в папке</td>
+    </tr>
+    <tr>
+      <td><code>git status</code></td>
+      <td>Что изменилось?</td>
+    </tr>
+    <tr>
+      <td><code>git add .</code></td>
+      <td>Подготовить всё к сохранению</td>
+    </tr>
+    <tr>
+      <td><code>git commit -m "..."</code></td>
+      <td>Сохранить с подписью</td>
+    </tr>
+    <tr>
+      <td><code>git log</code></td>
+      <td>Показать историю сейвов</td>
+    </tr>
+    <tr>
+      <td><code>git diff</code></td>
+      <td>Что именно поменялось?</td>
+    </tr>
+  </table>
+</div>
+
+<!-- Slide 6: Remote -->
+<div class="slide" id="slide-6">
+  <h2>Remote — облако</h2>
+  <div class="remote-diagram">
+    <div class="remote-box">
+      <div class="icon">💻</div>
+      <div class="label">Твой комп</div>
+      <div class="desc" style="color: #888; font-size: 0.9rem;">local</div>
+    </div>
+    <div class="remote-arrows">
+      <div class="push">── push ──→</div>
+      <div class="pull">←── pull ──</div>
+    </div>
+    <div class="remote-box">
+      <div class="icon">☁️</div>
+      <div class="label">GitHub</div>
+      <div class="desc" style="color: #888; font-size: 0.9rem;">remote</div>
+    </div>
+  </div>
+  <p style="color: #888; font-size: 1.1rem; margin-top: 10px;">
+    <span class="highlight">push</span> — отправить свои коммиты &nbsp;|&nbsp;
+    <span style="color: #22c55e; font-weight: 600;">pull</span> — забрать чужие изменения
+  </p>
+</div>
+
+<!-- Slide 7: PR -->
+<div class="slide" id="slide-7">
+  <h2>Pull Request</h2>
+  <p class="big-text" style="font-size: 1.5rem; margin-bottom: 30px;">
+    «Посмотрите мой код,<br>можно влить?»
+  </p>
+  <div class="diagram" style="font-size: 1.1rem; line-height: 2.2;">
+<span style="color: #3b82f6;">feature-ветка</span>  →  <span style="color: #f97316;">Pull Request</span>  →  <span style="color: #22c55e;">Code Review</span>  →  <span style="color: #f5f5f5;">Merge в main</span></div>
+</div>
+
+<!-- Slide 8: Claude Code -->
+<div class="slide" id="slide-8">
+  <h2>Git через Claude Code</h2>
+  <p style="color: #888; margin-bottom: 20px;">Говоришь по-русски — я делаю git</p>
+  <table class="claude-table">
+    <tr><td>«закоммить»</td><td>git add + git commit</td></tr>
+    <tr><td>«создай ветку»</td><td>git checkout -b feature/x</td></tr>
+    <tr><td>«что поменялось?»</td><td>git status + git diff</td></tr>
+    <tr><td>«покажи историю»</td><td>git log --oneline</td></tr>
+    <tr><td>«влей ветку»</td><td>git merge</td></tr>
+    <tr><td>«запушь»</td><td>git push (спрошу ок)</td></tr>
+    <tr><td>«сделай PR»</td><td>gh pr create</td></tr>
+  </table>
+</div>
+
+<!-- Slide 9: Golden rule -->
+<div class="slide" id="slide-9">
+  <h2>Золотое правило</h2>
+  <div class="rule-box">
+    <p>Коммить часто.<br>Пушь когда готов.</p>
+  </div>
+  <p style="color: #555; margin-top: 30px; font-size: 1rem;">
+    <kbd>←</kbd> <kbd>→</kbd> для навигации
+  </p>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button onclick="prev()">← Назад</button>
+  <span class="counter" id="counter">1 / 9</span>
+  <button onclick="next()">Далее →</button>
+</div>
+
+<script>
+  let current = 1;
+  const total = 9;
+
+  function show(n) {
+    document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+    document.getElementById('slide-' + n).classList.add('active');
+    document.getElementById('counter').textContent = n + ' / ' + total;
+    document.getElementById('progress').style.width = (n / total * 100) + '%';
+  }
+
+  function next() { if (current < total) { current++; show(current); } }
+  function prev() { if (current > 1) { current--; show(current); } }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+  });
+
+  // Swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { diff > 0 ? next() : prev(); }
+  });
+</script>
+
+</body>
+</html>
